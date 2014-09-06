@@ -116,6 +116,6 @@ class LevelDbClient extends DB {
   }
 
   override def close() {
-    connection.close
+    connection.close()
   }
 }
