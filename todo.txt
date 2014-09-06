@@ -1,0 +1,25 @@
+get .gitignore set up properly
+
+java socket server intro:
+http://edn.embarcadero.com/article/31995
+
+use protobuf for encoding requests?
+https://developers.google.com/protocol-buffers/docs/javatutorial
+
+we'll want to have some basic buffering. we should only flush to the server when the batch size is reached or when flush() is called.
+until then, the client should just hang onto puts locally.
+    - one issue there is WriteOptions. ideally we'd only want to send one WriteOptions per batch. or maybe we could even track
+    WriteOptons objects on the server the same way we are with iterators (see below). then instead of passing the whole WriteOptions
+    over the wire, we could just pass the randomly generated id and/or the hashcode of the WriteOptions object.
+
+with iterator(), we the server should generate an id and pass that back to the client. then any future operations on that iterator
+should pass the id, and the server can do a lookup in its ConcurrentHashMap (or whatever) to get the appropriate iterator.
+    - just like with puts, we should batch reads. not really possible for gets, but for iterator, when someone calls next,
+    it should actually return the next X to the client. although, we need to figure out how reads are supposed to interact
+    with concurrent writes. although it seems fine for now to say that if batch size > 1, iterator might not see concurrent writes.
+
+need to keep reading protobuf docs, but i think the easiest thing is to write the size myself, then probably the type
+myself (although i could use protobuf, should read more docs on this), and finally the payload bytes using protobuf.
+
+do we need to flush on get? otherwise we could have: db.put(x,y), db.get(x) == null. maybe this can be
+ configurable? how does hbase handle this? i guess there the client is also a memstore.
