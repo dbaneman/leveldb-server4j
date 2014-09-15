@@ -1,6 +1,6 @@
 package com.dbaneman.leveldb
 
-import org.iq80.leveldb.DB
+import org.iq80.leveldb.{DBIterator, DB}
 import org.junit._
 
 /**
@@ -37,6 +37,31 @@ class LevelDbServerTest {
     LevelDbServerTest.client.delete(key)
     val value = LevelDbServerTest.client.get(key)
     Assert.assertNull(value)
+  }
+
+  @Test def testIterator() {
+    LevelDbServerTest.client.put("1".getBytes, "1Value".getBytes)
+    LevelDbServerTest.client.put("2".getBytes, "2Value".getBytes)
+    LevelDbServerTest.client.put("3".getBytes, "3Value".getBytes)
+    val dbIterator = LevelDbServerTest.client.iterator()
+    testIterate1To3(dbIterator)
+    dbIterator.seekToFirst()
+    testIterate1To3(dbIterator)
+    dbIterator.seek("1".getBytes)
+    testIterate1To3(dbIterator)
+  }
+
+  private def testIterate1To3(dbIterator: DBIterator) {
+    for (i <- 1 to 3) {
+      println("i = " + i)
+      Assert.assertTrue(dbIterator.hasNext)
+      val peek = dbIterator.peekNext()
+      Assert.assertEquals(i.toString, new String(peek.getKey))
+      Assert.assertEquals(i.toString + "Value", new String(peek.getValue))
+      val next = dbIterator.next()
+      Assert.assertEquals(i.toString, new String(next.getKey))
+      Assert.assertEquals(i.toString + "Value", new String(next.getValue))
+    }
   }
 
 }

@@ -23,12 +23,25 @@ class LevelDbClient extends DB {
     inputStream = new BufferedInputStream(connection.getInputStream)
   }
 
-  override def get(key: Array[Byte]): Array[Byte] = {
-    val get: Get = new Get(key)
-    writeMessage(get)
+  def sendMessageExpectOk(msg: Message) {
+    sendMessage(msg)
+  }
+
+  def sendMessage(msg: Message): Message = {
+    writeMessage(msg)
+    receiveResponse()
+  }
+
+  private def writeMessage(msg: Message) {
+    MessageCodec.encode(msg, outputStream)
+    outputStream.flush()
+    System.out.println("Client sent a " + msg)
+  }
+
+  private def receiveResponse(): Message = {
     val response: Message = MessageCodec.decode(inputStream)
     processPotentialError(response)
-    response.asInstanceOf[GetResponse].value
+    response
   }
 
   private def processPotentialError(message: Message) {
@@ -39,81 +52,49 @@ class LevelDbClient extends DB {
     }
   }
 
-  override def iterator: DBIterator = {
-    throw new UnsupportedOperationException
+  override def get(key: Array[Byte]): Array[Byte] = {
+    val get: Get = new Get(key)
+    writeMessage(get)
+    receiveResponse().asInstanceOf[GetResponse].value
   }
 
-  override def iterator(readOptions: ReadOptions): DBIterator = {
-    throw new UnsupportedOperationException
-  }
+  override def iterator: DBIterator = ???
+
+  override def iterator(readOptions: ReadOptions): DBIterator = ???
 
   override def put(key: Array[Byte], value: Array[Byte]) {
     val put: Put = new Put(key, value)
-    writeMessage(put)
-    val response: Message = MessageCodec.decode(inputStream)
-    processPotentialError(response)
+    sendMessageExpectOk(put)
   }
 
-  override def get(key: Array[Byte], options: ReadOptions): Array[Byte] = {
-    throw new UnsupportedOperationException
-  }
+  override def get(key: Array[Byte], options: ReadOptions): Array[Byte] = ???
 
   override def delete(key: Array[Byte]) {
     val delete: Delete = new Delete(key)
-    writeMessage(delete)
-    val response: Message = MessageCodec.decode(inputStream)
-    processPotentialError(response)
+    sendMessageExpectOk(delete)
   }
 
-  private def writeMessage(msg: Message) {
-      MessageCodec.encode(msg, outputStream)
-      outputStream.flush()
-      System.out.println("Client sent a " + msg)
-  }
+  override def write(writeBatch: WriteBatch): Unit = ???
 
-  override def write(writeBatch: WriteBatch) {
-    throw new UnsupportedOperationException
-  }
+  override def createWriteBatch: WriteBatch = ???
 
-  override def createWriteBatch: WriteBatch = {
-    throw new UnsupportedOperationException
-  }
+  override def put(bytes: Array[Byte], bytes2: Array[Byte], writeOptions: WriteOptions): Snapshot = ???
 
-  override def put(bytes: Array[Byte], bytes2: Array[Byte], writeOptions: WriteOptions): Snapshot = {
-    throw new UnsupportedOperationException
-  }
+  override def delete(bytes: Array[Byte], writeOptions: WriteOptions): Snapshot = ???
 
-  override def delete(bytes: Array[Byte], writeOptions: WriteOptions): Snapshot = {
-    throw new UnsupportedOperationException
-  }
+  override def write(writeBatch: WriteBatch, writeOptions: WriteOptions): Snapshot = ???
 
-  override def write(writeBatch: WriteBatch, writeOptions: WriteOptions): Snapshot = {
-    throw new UnsupportedOperationException
-  }
+  override def getSnapshot: Snapshot = ???
 
-  override def getSnapshot: Snapshot = {
-    throw new UnsupportedOperationException
-  }
+  override def getApproximateSizes(ranges: Range*): Array[Long] = ???
 
-  override def getApproximateSizes(ranges: Range*): Array[Long] = {
-    throw new UnsupportedOperationException
-  }
+  override def getProperty(s: String): String = ???
 
-  override def getProperty(s: String): String = {
-    throw new UnsupportedOperationException
-  }
+  override def suspendCompactions() { ??? }
 
-  override def suspendCompactions() {
-    throw new UnsupportedOperationException
-  }
+  override def resumeCompactions() { ??? }
 
-  override def resumeCompactions() {
-    throw new UnsupportedOperationException
-  }
-
-  override def compactRange(bytes: Array[Byte], bytes2: Array[Byte]) {
-    throw new UnsupportedOperationException
-  }
+  override def compactRange(bytes: Array[Byte], bytes2: Array[Byte]) { ??? }
 
   override def close() {
     connection.close()

@@ -11,4 +11,11 @@ object Messages {
   case class GetResponse(value: Array[Byte]) extends Message
   case object Ok extends Message
   case class ErrorMessage(message: Message, stackTrace: String) extends Message
+  case object Iterator extends Message
+  case class IteratorAction(id: Int, op: IteratorOp) extends Message
+
+  abstract class IteratorOp extends Serializable
+  case object NextBatch extends IteratorOp
+  case object SeekToFirst extends IteratorOp
+  case class Seek(key: Array[Byte]) extends IteratorOp
 }
