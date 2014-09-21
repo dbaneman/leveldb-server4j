@@ -53,12 +53,14 @@ class LevelDbClient extends DB {
   }
 
   override def get(key: Array[Byte]): Array[Byte] = {
-    val get: Get = new Get(key)
-    writeMessage(get)
-    receiveResponse().asInstanceOf[GetResponse].value
+    sendMessage(new Get(key)).asInstanceOf[GetResponse].value
   }
 
-  override def iterator: DBIterator = ???
+
+  override def iterator: DBIterator = {
+    val id = sendMessage(NewIterator).asInstanceOf[NewIteratorResponse].id
+    new ClientDbIterator(this, id)
+  }
 
   override def iterator(readOptions: ReadOptions): DBIterator = ???
 
