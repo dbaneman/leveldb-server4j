@@ -1,80 +1,39 @@
 package com.dbaneman.leveldb.internal
 
-import java.io.{BufferedInputStream, BufferedOutputStream, InputStream, OutputStream}
-import java.net.{InetAddress, Socket}
+import java.nio.ByteBuffer
 
-import com.dbaneman.leveldb.internal.Messages._
+import org.apache.thrift.protocol.TBinaryProtocol
+import org.apache.thrift.transport.TSocket
 import org.iq80.leveldb._
 
 // TODO: add timeouts for getting response from server!
 /**
-  * Created by dan on 9/6/14.
+ * Created by dan on 9/6/14.
  */
 class LevelDbClient extends DB {
-  private var connection: Socket = _
-  private var outputStream: OutputStream = _
-  private var inputStream: InputStream = _
+  private[this] var transport: TSocket = _
+  private[this] var client: DbService.Client = _
 
-  def start(serverHost: String, serverPort: Int) {
+  def start(serverHost: String, serverPort: Int): LevelDbClient = {
+    transport = new TSocket(serverHost, serverPort, 5000)
+    transport.open()
+    val protocol = new TBinaryProtocol(transport)
+    client = new DbService.Client(protocol)
     System.out.println("LevelDB client initialized")
-    val address: InetAddress = InetAddress.getByName(serverHost)
-    connection = new Socket(address, serverPort)
-    outputStream = new BufferedOutputStream(connection.getOutputStream)
-    inputStream = new BufferedInputStream(connection.getInputStream)
+    this
   }
 
-  def sendMessageExpectOk(msg: Message) {
-    sendMessage(msg)
-  }
+  override def get(key: Array[Byte]): Array[Byte] = client.get(ByteBuffer.wrap(key)).getValue
 
-  def sendMessage(msg: Message): Message = {
-    writeMessage(msg)
-    receiveResponse()
-  }
-
-  private def writeMessage(msg: Message) {
-    MessageCodec.encode(msg, outputStream)
-    outputStream.flush()
-    System.out.println("Client sent a " + msg)
-  }
-
-  private def receiveResponse(): Message = {
-    val response: Message = MessageCodec.decode(inputStream)
-    processPotentialError(response)
-    response
-  }
-
-  private def processPotentialError(message: Message) {
-    message match {
-      case errorMessage: ErrorMessage =>
-        throw new DBException("Error processing " + errorMessage.message.getClass + "\n" + errorMessage.stackTrace)
-      case _ => // no op
-    }
-  }
-
-  override def get(key: Array[Byte]): Array[Byte] = {
-    sendMessage(new Get(key)).asInstanceOf[GetResponse].value
-  }
-
-
-  override def iterator: DBIterator = {
-    val id = sendMessage(NewIterator).asInstanceOf[NewIteratorResponse].id
-    new ClientDbIterator(this, id)
-  }
+  override def iterator: DBIterator = ???
 
   override def iterator(readOptions: ReadOptions): DBIterator = ???
 
-  override def put(key: Array[Byte], value: Array[Byte]) {
-    val put: Put = new Put(key, value)
-    sendMessageExpectOk(put)
-  }
+  override def put(key: Array[Byte], value: Array[Byte]) { client.put(ByteBuffer.wrap(key), ByteBuffer.wrap(value)) }
 
   override def get(key: Array[Byte], options: ReadOptions): Array[Byte] = ???
 
-  override def delete(key: Array[Byte]) {
-    val delete: Delete = new Delete(key)
-    sendMessageExpectOk(delete)
-  }
+  override def delete(key: Array[Byte]) { client.deleteKey(ByteBuffer.wrap(key)) }
 
   override def write(writeBatch: WriteBatch): Unit = ???
 
@@ -98,7 +57,5 @@ class LevelDbClient extends DB {
 
   override def compactRange(bytes: Array[Byte], bytes2: Array[Byte]) { ??? }
 
-  override def close() {
-    connection.close()
-  }
+  override def close() { transport.close() }
 }

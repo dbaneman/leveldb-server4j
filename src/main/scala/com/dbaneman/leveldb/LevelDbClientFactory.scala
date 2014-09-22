@@ -8,10 +8,6 @@ import org.iq80.leveldb.DB
  */
 class LevelDbClientFactory {
 
-  def open(serverHost: String, serverPort: Int): DB = {
-    val levelDbClient: LevelDbClient = new LevelDbClient
-    levelDbClient.start(serverHost, serverPort)
-    levelDbClient
-  }
+  def open(serverHost: String, serverPort: Int): DB = new LevelDbClient().start(serverHost, serverPort)
 
 }

@@ -1,11 +1,12 @@
 package com.dbaneman.leveldb
 
 import java.io._
-import java.net.{ServerSocket, Socket}
 
-import com.dbaneman.leveldb.internal.Messages.Message
-import com.dbaneman.leveldb.internal.{MessageCodec, ServerMessageHandler}
+import com.dbaneman.leveldb.internal.{DbHandler, DbService}
 import com.dbaneman.leveldb.internal.UnderlyingDbLibs._
+import org.apache.thrift.server.TServer.{AbstractServerArgs, Args}
+import org.apache.thrift.server.TSimpleServer
+import org.apache.thrift.transport.TServerSocket
 
 import com.typesafe.config.{ConfigFactory, Config}
 import org.fusesource.leveldbjni.JniDBFactory
@@ -37,24 +38,17 @@ object LevelDbServer extends App {
     }
     val db = dbFactory.open(new File(dataDir), new Options)
     // TODO: expose standard LevelDB options through conf
-    start(port, db)
+    startServer(port, db)
   }
 
-  def start(port: Int, db: DB) {
-    val serverSocket: ServerSocket = new ServerSocket(port)
-    val messageHandler = new ServerMessageHandler(db)
-    val connection = serverSocket.accept()
-    val inputFromClient = new BufferedInputStream(connection.getInputStream)
-    val outputToClient = new BufferedOutputStream(connection.getOutputStream)
-    while (true) {
-      System.out.println("top of loop!")
-      val message = MessageCodec.decode(inputFromClient)
-      System.out.println("Server received a " + message)
-      val response = messageHandler.processMessage(message)
-      System.out.println("Server sent a " + response)
-      MessageCodec.encode(response, outputToClient)
-      outputToClient.flush()
-    }
+  private def startServer(port: Int, db: DB) {
+    val handler = new DbHandler(db)
+    val processor = new DbService.Processor(handler)
+    val serverTransport = new TServerSocket(port)
+    val args = new Args(serverTransport).processor(processor)
+    val server = new TSimpleServer(args)
+    println("Starting the simple server...")
+    server.serve()
   }
 
 }

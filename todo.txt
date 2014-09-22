@@ -23,3 +23,9 @@ myself (although i could use protobuf, should read more docs on this), and final
 
 do we need to flush on get? otherwise we could have: db.put(x,y), db.get(x) == null. maybe this can be
  configurable? how does hbase handle this? i guess there the client is also a memstore.
+
+use finagle + scrooge (or just thrift)!
+iterators (maybe just make this its own IteratorService service to start with, even this means a request per next() call, and then eventually I can set up some batching)
+add rest of functionality (WriteBatches, ReadOptions and WriteOptions, etc.)
+add timeout to client service
+switch from http to websockets for perf
