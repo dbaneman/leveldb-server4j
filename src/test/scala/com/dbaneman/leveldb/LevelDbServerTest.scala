@@ -53,7 +53,6 @@ class LevelDbServerTest {
 
   private def testIterate1To3(dbIterator: DBIterator) {
     for (i <- 1 to 3) {
-      println("i = " + i)
       Assert.assertTrue(dbIterator.hasNext)
       val peek = dbIterator.peekNext()
       Assert.assertEquals(i.toString, new String(peek.getKey))

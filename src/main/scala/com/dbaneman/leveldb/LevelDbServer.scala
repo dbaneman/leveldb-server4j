@@ -2,15 +2,15 @@ package com.dbaneman.leveldb
 
 import java.io._
 
-import com.dbaneman.leveldb.internal.{DbHandler, DbService}
+import com.dbaneman.leveldb.internal.DbHandler
 import com.dbaneman.leveldb.internal.UnderlyingDbLibs._
-import org.apache.thrift.server.TServer.{AbstractServerArgs, Args}
+import com.dbaneman.leveldb.internal.generated.DbService
+import com.typesafe.config.{Config, ConfigFactory}
+import org.apache.thrift.server.TServer.Args
 import org.apache.thrift.server.TSimpleServer
 import org.apache.thrift.transport.TServerSocket
-
-import com.typesafe.config.{ConfigFactory, Config}
 import org.fusesource.leveldbjni.JniDBFactory
-import org.iq80.leveldb.{Options, DB, DBFactory}
+import org.iq80.leveldb._
 import org.iq80.leveldb.impl.Iq80DBFactory
 
 /**
@@ -47,7 +47,6 @@ object LevelDbServer extends App {
     val serverTransport = new TServerSocket(port)
     val args = new Args(serverTransport).processor(processor)
     val server = new TSimpleServer(args)
-    println("Starting the simple server...")
     server.serve()
   }
 
