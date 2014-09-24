@@ -8,6 +8,12 @@ import org.iq80.leveldb.DB
  */
 class LevelDbClientFactory {
 
+  /**
+   * Create a new client to a running LevelDB server.
+   * @param serverHost server host
+   * @param serverPort port that the server is listening on
+   * @return
+   */
   def open(serverHost: String, serverPort: Int): DB = new LevelDbClient().start(serverHost, serverPort)
 
 }

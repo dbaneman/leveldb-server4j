@@ -1,6 +1,6 @@
 package com.dbaneman.leveldb
 
-import org.iq80.leveldb.{DBIterator, DB}
+import org.iq80.leveldb.{DB, DBIterator}
 import org.junit._
 
 /**
