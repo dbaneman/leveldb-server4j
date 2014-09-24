@@ -22,9 +22,9 @@ That's it! You're up and running.
 This project uses Typesafe's config library. The default configuration (reference.conf) for the server is:
        
     leveldb-server {
-      host-address = "127.0.0.1"  # address to listen on
-      port = 8001  # port to listen on
-      data-dir = "/opt/leveldb-server/"  # local directory for storing LevelDB data
+      host-address = "127.0.0.1"        # address to listen on
+      port = 8001                       # port to listen on
+      data-dir = "/opt/leveldb-server/" # local directory for storing LevelDB data
     }
     
 To run with a custom configuration, create a custom config file and pass the file location as the first argument to the main method:
