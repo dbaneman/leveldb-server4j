@@ -2,7 +2,7 @@ name := "leveldb-server4j"
 
 version := "0.1.0"
 
-resolvers += "Twitter Maven repo" at "http://maven.twttr.com/"
+//resolvers += "Twitter Maven repo" at "http://maven.twttr.com/"
 
 libraryDependencies += "junit" % "junit" % "4.8.1" % "test"
 
