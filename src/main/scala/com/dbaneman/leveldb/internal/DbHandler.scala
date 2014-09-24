@@ -31,7 +31,6 @@ class DbHandler(db: DB) extends DbService.Iface {
     convertedRanges.toList
   }
 
-
   override def resumeCompactions() { db.resumeCompactions() }
 
   override def getProperty(property: String): String = { db.getProperty(property) }
